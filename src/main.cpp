@@ -31,7 +31,7 @@ Data transfer can occur either via TCP (Ethernet or WiFi) or over a CAN bus.
 */
 
 #define PROJECT "S88 gateway for Rocrail"
-#define VERSION "0.3.3"
+#define VERSION "0.3.4"
 #define AUTHOR "Christophe BOBILLE - www.locoduino.org"
 
 #include <Arduino.h>
@@ -43,22 +43,22 @@ Data transfer can occur either via TCP (Ethernet or WiFi) or over a CAN bus.
 //----------------------------------------------------------------------------------------
 //  Select a communication mode
 //----------------------------------------------------------------------------------------
-// #define TCP
-#define WIFI
+#define ETHERNET
+// #define WIFI
 // #define CAN
 
 //----------------------------------------------------------------------------------------
-//  TCP et WIFI
+//  Ethernet et WIFI
 //----------------------------------------------------------------------------------------
-#if defined(TCP) || defined(WIFI)
+#if defined(ETHERNET) || defined(WIFI)
 IPAddress ip(192, 168, 1, 208);
 const uint port = 15731;
 #endif
 
 //----------------------------------------------------------------------------------------
-//  TCP
+//  Ethernet
 //----------------------------------------------------------------------------------------
-#if defined(TCP)
+#if defined(ETHERNET)
 #include <Ethernet.h>
 #include <SPI.h>
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
@@ -70,6 +70,7 @@ EthernetClient client;
 //----------------------------------------------------------------------------------------
 #elif defined(WIFI)
 #include <WiFi.h>
+
 const char *ssid = "**********";
 const char *password = "**********";
 IPAddress gateway(192, 168, 1, 1);  // passerelle par défaut
@@ -104,12 +105,12 @@ QueueHandle_t debugQueue;
 //----------------------------------------------------------------------------------------
 
 void S88receiveTask(void *pvParameters);
-#if defined(TCP) || defined(WIFI)
+//#if defined(Ethernet) || defined(WIFI)
 void tcpListenTask(void *pvParameters);
 void tcpSendTask(void *pvParameters);
-#elif defined(CAN)
+//#elif defined(CAN)
 void canSendTask(void *pvParameters);
-#endif
+//#endif
 void debugTask(void *pvParameters);
 
 const uint8_t BUFFER_SIZE = 13;
@@ -127,14 +128,14 @@ void setup()
     delay(100);
   }
 
-#if !defined(TCP) && !defined(WIFI) && !defined(CAN)
+#if !defined(ETHERNET) && !defined(WIFI) && !defined(CAN)
   Serial.print("Select a communication mode.");
   while (1)
   {
   }
 #endif
 
-#if defined(TCP)
+#if defined(ETHERNET)
   Serial.println("Waiting for Ethernet connection : ");
   // Ethernet initialization
   Ethernet.init(5); // MKR ETH Shield (change depending on your hardware)
@@ -184,7 +185,7 @@ void setup()
 
   // Création des tâches
   xTaskCreatePinnedToCore(S88receiveTask, "S88receiveTask", 4 * 1024, (void *)s88Queue, 5, NULL, 1); // Priority 5, Core 1
-#if defined(TCP) || defined(WIFI)
+#if defined(ETHERNET) || defined(WIFI)
   xTaskCreatePinnedToCore(tcpListenTask, "tcpListenTask", 4 * 1024, NULL, 1, NULL, 1); // Priority 1, Core 1
   xTaskCreatePinnedToCore(tcpSendTask, "tcpSendTask", 4 * 1024, NULL, 5, NULL, 0);     // Priority 5, Core 0
 #elif defined(CAN)
@@ -202,7 +203,7 @@ void loop() {} // nothing to do
 //----------------------------------------------------------------------------------------
 //  tcpListenTask
 //----------------------------------------------------------------------------------------
-#if defined(TCP) || defined(WIFI)
+#if defined(ETHERNET) || defined(WIFI)
 void tcpListenTask(void *pvParameters)
 {
   while (true)
@@ -243,7 +244,7 @@ void S88receiveTask(void *pvParameters)
   }
 }
 
-#if defined(TCP) || defined(WIFI)
+#if defined(ETHERNET) || defined(WIFI)
 
 //----------------------------------------------------------------------------------------
 //  tcpSendTask

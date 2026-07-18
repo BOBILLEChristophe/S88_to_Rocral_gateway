@@ -10,7 +10,7 @@
 #define S88_LOAD_PIN GPIO_NUM_13   // Pin de LOAD (STROBE)
 #define S88_DATA_PIN GPIO_NUM_14   // Pin de DATA (DATA_OUT)
 
-#define S88_MODULE_COUNT 2
+#define S88_MODULE_COUNT 1
 #define S88_INPUTS_PER_MODULE 16
 
 struct Message {
